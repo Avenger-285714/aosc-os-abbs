@@ -5,9 +5,13 @@ BUILDDEP="cmake llvm"
 PKGDES="The LLVM-based D compiler runtime"
 
 AB_FLAGS_SPECS=0
+ABTYPE=cmakeninja
 USECLANG=0
 NOSTATIC=0
 NOLTO=1
+
+CMAKE_AFTER__RISCV64=('-DD_EXTRA_FLAGS=-Xcc=-latomic')
+CMAKE_AFTER__LOONGSON3=('DD_EXTRA_FLAGS=-mabi=n64')
 
 PKGBREAK="dub<=1.18.0 gtkd<=3.9.0-2 ldc<=1.18.0 tilix<=20190901-2"
 PKGREP="ldc<=1.1.0b5"
