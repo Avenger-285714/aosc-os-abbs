@@ -22,7 +22,7 @@ abinfo "Setting LDC linker to ld.${D_LINKER} ..."
 export LDFLAGS="${LDFLAGS} -fPIC -fuse-ld=${D_LINKER}"
 
 cmake .. \
-      ${CMAKE_DEF} ${CMAKE_AFTER} -GNinja \
+      "${CMAKE_DEF[@]}" "${CMAKE_AFTER[@]}" -GNinja \
       ${CMAKE_EXTRA_FLAGS}
 ninja
 DESTDIR="$PKGDIR" ninja install
