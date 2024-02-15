@@ -24,6 +24,15 @@ index a8bf132..f1c4f85 100644
  
  if (DEFINED STATIC_CIMGUI)
      set(OutputDirectory ${OutputDirectory}/Static)
+@@ -99,7 +95,7 @@ endif()
+ option(BUILD_SHARED_LIBS "Build shared instead of static libraries." OFF)
+ set(IMGUI_SDL "yes" CACHE STRING "Build with SDL")
+ set(IMGUI_OPENGL3 "yes" CACHE STRING "Build with OpenGL3")
+-add_subdirectory(${cimgui_SUBMOD_DIR})
++add_subdirectory(cimgui)
+ 
+ set_target_properties(cimgui PROPERTIES DEBUG_POSTFIX "")
+ set_target_properties(cimgui PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${OutputDirectory})
 diff --git a/dub.sdl b/dub.sdl
 index de7d5e8..4345706 100644
 --- a/dub.sdl
