@@ -3,7 +3,7 @@ if [[ "${CROSS:-$ARCH}" = loongson3 ]]; then
 elif [[ "${CROSS:-$ARCH}" = riscv64 ]]; then
     EXTRA_FLAGS="-Xcc=-latomic --linker=lld -mattr=+d -mabi=lp64d"
 elif [[ "${CROSS:-$ARCH}" = loongarch64 ]]; then
-    EXTRA_FLAGS="-g -gdwarf=5 --linker=bfd"
+    EXTRA_FLAGS="-g -gdwarf=5 --linker=mold"
 else
     EXTRA_FLAGS="-g -gdwarf=5 --linker=lld"
 fi
