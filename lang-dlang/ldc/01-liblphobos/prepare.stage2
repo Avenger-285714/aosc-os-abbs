@@ -5,3 +5,7 @@ chmod a+x /usr/bin/gdmd
 
 abinfo "Removing previous versions of ldc ..."
 apt-get purge -y liblphobos ldc
+
+if ab_match_arch loongson3; then
+    CMAKE_AFTER+=("-DCMAKE_SHARED_LINKER_FLAGS=$LDFLAGS -fuse-ld=lld")
+fi
