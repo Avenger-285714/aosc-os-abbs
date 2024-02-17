@@ -27,6 +27,12 @@ abinfo "Building inochi2d-creator ..."
 dub fetch gitver
 dub build -c linux-full --compiler=ldmd -y -n -b release --override-config=i2d-imgui/static_dynamicCRT
 
+abinfo "Building translations ..."
+install -dv "$PKGDIR"/usr/share/inochi-creator
+for f in "$SRCDIR"/tl/*.po; do
+    msgfmt -o "$PKGDIR"/usr/share/inochi-creator/"$(basename -- "$f" .po).mo" -- "$f"
+done
+
 abinfo "Installing inochi2d-creator ..."
 install -Dvm755 "$SRCDIR"/out/inochi-creator -t "$PKGDIR"/usr/bin/
 install -Dvm644 "$SRCDIR"/build-aux/linux/inochi-creator.desktop -t "$PKGDIR"/usr/share/applications/
