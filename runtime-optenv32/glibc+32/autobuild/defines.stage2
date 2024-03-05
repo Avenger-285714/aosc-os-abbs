@@ -1,0 +1,12 @@
+PKGNAME=glibc+32
+PKGSEC=libs
+PKGDEP="tzdata"
+PKGDES="GNU C Library (optenv32)"
+BUILDDEP="binutils+32 gcc+32 linux+api+32"
+
+NOLTO=1
+NOSTATIC=0
+ABSTRIP=0
+
+PKGBREAK="wine<=1.7.54"
+ABHOST=noarch
