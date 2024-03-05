@@ -1,0 +1,73 @@
+abinfo "Setting the environment ..."
+export PATH=/opt/32/bin:$PATH
+
+abinfo "Preparing build ..."
+unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
+mkdir "$SRCDIR"/build
+cd "$SRCDIR"/build
+
+"$SRCDIR"/configure \
+	--target=i686-aosc-linux-gnu \
+	--prefix=/opt/32 \
+	--libdir=/opt/32/lib \
+	--includedir=/opt/32/include \
+	--with-glibc-version=2.37 \
+	--with-newlib \
+	--without-headers \
+	--enable-default-pie \
+	--enable-default-ssp \
+	--disable-nls \
+	--disable-shared \
+	--disable-multilib \
+	--disable-threads \
+	--disable-libatomic \
+	--disable-libgomp \
+	--disable-libquadmath \
+	--disable-libssp \
+	--disable-libvtv \
+	--disable-libstdcxx \
+	--enable-languages=c,c++
+
+abinfo "Building stage 2 gcc+32 ..."
+make
+
+abinfo "Installing stage 2 gcc+32 ..."
+make DESTDIR="$PKGDIR" install
+
+# If .gcc-stamp does exist, build libstdc++.
+if [ -e "/opt/32/.gcc-stamp" ] ; then
+	abinfo "Stamp file found, building libstdc++ ..."
+	if [ ! -e "/opt/32/lib/libc.so.6" ] ; then
+		abdie "glibc could not be found. Make sure glibc+32 is built and installed."
+	fi
+	abinfo "Configuring libstdc++ ..."
+	"$SRCDIR"/libstdc++-v3/configure \
+		--host=i686-aosc-linux-gnu \
+		--build=x86_64-aosc-linux-gnu \
+		--prefix=/opt/32 \
+		--disable-multilib \
+		--disable-libstdcxx-pch \
+		--with-gxx-include-dir=/opt/32/i686-aosc-linux-gnu/include/c++/13.2.0
+	
+	abinfo "Building libstdc++ ..."
+	make
+
+	abinfo "Installing libstdc++ ..."
+	make install
+else
+	touch "$PKGDIR"/opt/32/.gcc-stamp
+fi
+
+abinfo "Dropping unneeded files ..."
+if [ -d "$PKGDIR"/opt/32/share ] ; then
+	rm -rv "$PKGDIR"/opt/32/share
+	ln -sf "/usr/share" "$PKGDIR"/opt/32/share
+fi
+if [ -d "$PKGDIR"/opt/32/etc ] ; then
+	rm -rv "$PKGDIR"/opt/32/etc
+	ln -sf "/etc" "$PKGDIR"/opt/32/etc
+fi
+if [ -d "$PKGDIR"/opt/32/var ] ; then
+	rm -rv "$PKGDIR"/opt/32/var
+	ln -sf "/var" "$PKGDIR"/opt/32/var
+fi
