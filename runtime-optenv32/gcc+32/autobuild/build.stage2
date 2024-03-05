@@ -61,13 +61,10 @@ fi
 abinfo "Dropping unneeded files ..."
 if [ -d "$PKGDIR"/opt/32/share ] ; then
 	rm -rv "$PKGDIR"/opt/32/share
-	ln -sf "/usr/share" "$PKGDIR"/opt/32/share
 fi
 if [ -d "$PKGDIR"/opt/32/etc ] ; then
 	rm -rv "$PKGDIR"/opt/32/etc
-	ln -sf "/etc" "$PKGDIR"/opt/32/etc
 fi
 if [ -d "$PKGDIR"/opt/32/var ] ; then
 	rm -rv "$PKGDIR"/opt/32/var
-	ln -sf "/var" "$PKGDIR"/opt/32/var
 fi
