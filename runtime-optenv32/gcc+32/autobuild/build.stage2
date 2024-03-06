@@ -47,17 +47,19 @@ if [ -e "/opt/32/.gcc-stamp" ] ; then
 		--prefix=/opt/32 \
 		--disable-multilib \
 		--disable-libstdcxx-pch \
-		--with-gxx-include-dir=/opt/32/i686-aosc-linux-gnu/include/c++/13.2.0
-	
+		--with-gxx-include-dir=/opt/32/include/c++/13.2.0
+
 	abinfo "Building libstdc++ ..."
 	make
 
 	abinfo "Installing libstdc++ ..."
-	make install
+	make DESTDIR="$PKGDIR" install
 else
 	touch "$PKGDIR"/opt/32/.gcc-stamp
 fi
 
+# Linux From Scratch: Since glibc might not yet available, we need a proper
+# limits.h header to support further builds.
 abinfo "Fixing limits.h header ..."
 cat "$SRCDIR"/gcc/limitx.h "$SRCDIR"/gcc/glimits.h "$SRCDIR"/gcc/limity.h > \
 	`dirname $("$PKGDIR"/opt/32/bin/i686-aosc-linux-gnu-gcc -print-libgcc-file-name)`/include/limits.h
