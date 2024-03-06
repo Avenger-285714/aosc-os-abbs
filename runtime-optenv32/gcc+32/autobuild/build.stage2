@@ -58,6 +58,10 @@ else
 	touch "$PKGDIR"/opt/32/.gcc-stamp
 fi
 
+abinfo "Fixing limits.h header ..."
+cat "$SRCDIR"/gcc/limitx.h "$SRCDIR"/gcc/glimits.h "$SRCDIR"/gcc/limity.h > \
+	`dirname $("$PKGDIR"/opt/32/bin/i686-aosc-linux-gnu-gcc -print-libgcc-file-name)`/include/limits.h
+
 abinfo "Dropping unneeded files ..."
 if [ -d "$PKGDIR"/opt/32/share ] ; then
 	rm -rv "$PKGDIR"/opt/32/share
