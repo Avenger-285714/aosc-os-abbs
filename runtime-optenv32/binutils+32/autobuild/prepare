@@ -1,0 +1,4 @@
+sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" "$SRCDIR"/libiberty/configure
+sed -i 's/testsuite//g' "$SRCDIR"/gold/Makefile.in
+
+export AUTOTOOLS_DEF=""
