@@ -5,4 +5,3 @@ PKGDEP="binutils+32 gmp mpfr mpc zlib"
 
 NOSTATIC=0
 NOLTO=1
-ABHOST=noarch
