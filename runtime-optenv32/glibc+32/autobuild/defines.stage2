@@ -9,4 +9,3 @@ NOSTATIC=0
 ABSTRIP=0
 
 PKGBREAK="wine<=1.7.54"
-ABHOST=noarch
