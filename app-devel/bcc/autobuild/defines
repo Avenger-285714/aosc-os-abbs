@@ -13,6 +13,9 @@ PKGDES="BPF compiler collection and tools for Linux kernel tracing and instrumen
 
 NOSTATIC=0
 
+# FIXME: cmakeninja fails on very fast (circa 2024) machines (such as our
+# towards-modern-distro buildbot).
+ABTYPE=cmake
 CMAKE_AFTER="-DBPS_LINK_RT=ON \
              -DENABLE_CLANG_JIT=ON \
              -DENABLE_CPP_API=ON \
