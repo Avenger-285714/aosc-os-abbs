@@ -1,7 +1,7 @@
-From 78e2e4f6fb5e77748ef650750b5c193bd221f1ed Mon Sep 17 00:00:00 2001
+From 02a5df1fd94e7057b3a6f5218da9f1e06c18cd09 Mon Sep 17 00:00:00 2001
 From: Jiajie Chen <c@jia.je>
 Date: Fri, 9 Feb 2024 18:48:33 -0800
-Subject: [PATCH 1/2] Add i486-unknown-linux-gnu compiler target
+Subject: [PATCH 1/5] Add i486-unknown-linux-gnu compiler target
 
 ---
  compiler/rustc_target/src/spec/mod.rs                     | 1 +
@@ -10,7 +10,7 @@ Subject: [PATCH 1/2] Add i486-unknown-linux-gnu compiler target
  create mode 100644 compiler/rustc_target/src/spec/targets/i486_unknown_linux_gnu.rs
 
 diff --git a/compiler/rustc_target/src/spec/mod.rs b/compiler/rustc_target/src/spec/mod.rs
-index b688c9731..e304f5cdd 100644
+index b688c97311a..e304f5cdd33 100644
 --- a/compiler/rustc_target/src/spec/mod.rs
 +++ b/compiler/rustc_target/src/spec/mod.rs
 @@ -1444,6 +1444,7 @@ supported_targets! {
@@ -23,7 +23,7 @@ index b688c9731..e304f5cdd 100644
      ("csky-unknown-linux-gnuabiv2", csky_unknown_linux_gnuabiv2),
 diff --git a/compiler/rustc_target/src/spec/targets/i486_unknown_linux_gnu.rs b/compiler/rustc_target/src/spec/targets/i486_unknown_linux_gnu.rs
 new file mode 100644
-index 000000000..a11fbecc3
+index 00000000000..a11fbecc3c3
 --- /dev/null
 +++ b/compiler/rustc_target/src/spec/targets/i486_unknown_linux_gnu.rs
 @@ -0,0 +1,8 @@
@@ -36,5 +36,5 @@ index 000000000..a11fbecc3
 +    base
 +}
 -- 
-2.43.0
+2.44.0
 
