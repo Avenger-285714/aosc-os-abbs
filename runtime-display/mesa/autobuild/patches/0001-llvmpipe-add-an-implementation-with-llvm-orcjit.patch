@@ -1,10 +1,10 @@
-From 04fbe25bc2887cc084ca2f513717033b8d5713d9 Mon Sep 17 00:00:00 2001
+From 8e35389eb083769f840d36edd2f3808308ff1665 Mon Sep 17 00:00:00 2001
 From: Yukari Chiba <i@0x7f.cc>
-Date: Fri, 3 Nov 2023 23:18:47 +0800
-Subject: [PATCH 2/4] llvmpipe: add an implementation with llvm orcjit
+Date: Thu, 21 Mar 2024 16:41:49 +0800
+Subject: [PATCH 1/5] llvmpipe: add an implementation with llvm orcjit
 
 ---
- meson.build                                   |   7 +-
+ meson.build                                   |   4 +-
  meson_options.txt                             |   7 +
  src/gallium/auxiliary/draw/draw_context.c     |   4 +
  src/gallium/auxiliary/draw/draw_llvm.c        |  93 +-
@@ -13,7 +13,7 @@ Subject: [PATCH 2/4] llvmpipe: add an implementation with llvm orcjit
  src/gallium/auxiliary/gallivm/lp_bld_coro.h   |   8 +
  src/gallium/auxiliary/gallivm/lp_bld_init.c   |   7 +-
  src/gallium/auxiliary/gallivm/lp_bld_init.h   |  41 +-
- .../auxiliary/gallivm/lp_bld_init_orc.cpp     | 955 ++++++++++++++++++
+ .../auxiliary/gallivm/lp_bld_init_orc.cpp     | 959 ++++++++++++++++++
  src/gallium/auxiliary/meson.build             |   6 +-
  src/gallium/drivers/llvmpipe/lp_context.c     |  18 +
  src/gallium/drivers/llvmpipe/lp_context.h     |   4 +
@@ -31,18 +31,18 @@ Subject: [PATCH 2/4] llvmpipe: add an implementation with llvm orcjit
  src/gallium/drivers/llvmpipe/lp_test_format.c |  50 +-
  .../llvmpipe/lp_test_lookup_multiple.c        | 172 ++++
  src/gallium/drivers/llvmpipe/lp_test_printf.c |  31 +-
- .../drivers/llvmpipe/lp_texture_handle.c      |  24 +
+ .../drivers/llvmpipe/lp_texture_handle.c      |  20 +
  src/gallium/drivers/llvmpipe/meson.build      |   2 +-
  src/util/detect_arch.h                        |  23 +
- 30 files changed, 1619 insertions(+), 21 deletions(-)
+ 30 files changed, 1616 insertions(+), 21 deletions(-)
  create mode 100644 src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
  create mode 100644 src/gallium/drivers/llvmpipe/lp_test_lookup_multiple.c
 
 diff --git a/meson.build b/meson.build
-index 133fd9a8ca3..d9f968b5cc9 100644
+index 5c91048a3f1..aa959ec95bb 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -1725,6 +1725,7 @@ if with_clc
+@@ -1725,13 +1725,14 @@ if with_clc
    llvm_optional_modules += ['all-targets', 'windowsdriver', 'frontendhlsl']
  endif
  draw_with_llvm = get_option('draw-use-llvm')
@@ -50,28 +50,24 @@ index 133fd9a8ca3..d9f968b5cc9 100644
  if draw_with_llvm
    llvm_modules += 'native'
    # lto is needded with LLVM>=15, but we don't know what LLVM verrsion we are using yet
-@@ -1733,7 +1734,7 @@ endif
+   llvm_optional_modules += ['lto']
+ endif
  
- if with_amd_vk or with_gallium_radeonsi
+-if with_amd_vk or with_gallium_radeonsi
++if with_amd_vk or with_gallium_radeonsi or with_clc or llvm_with_orcjit
    _llvm_version = '>= 15.0.0'
--elif with_intel_clc
-+elif with_intel_clc or llvm_with_orcjit
+ elif with_intel_clc
    _llvm_version = '>= 13.0.0'
- elif with_gallium_opencl
-   _llvm_version = '>= 11.0.0'
-@@ -1771,6 +1772,10 @@ if with_llvm
-   pre_args += '-DMESA_LLVM_VERSION_STRING="@0@"'.format(dep_llvm.version())
-   pre_args += '-DLLVM_IS_SHARED=@0@'.format(_shared_llvm.to_int())
+@@ -1815,6 +1816,7 @@ else
+ endif
+ pre_args += '-DLLVM_AVAILABLE=' + (with_llvm ? '1' : '0')
+ pre_args += '-DDRAW_LLVM_AVAILABLE=' + (with_llvm and draw_with_llvm ? '1' : '0')
++pre_args += '-DGALLIVM_USE_ORCJIT=' + (with_llvm and llvm_with_orcjit ? '1' : '0')
  
-+  if draw_with_llvm and llvm_with_orcjit
-+    pre_args += '-DGALLIVM_USE_ORCJIT=1'
-+  endif
-+
-   if with_swrast_vk and not draw_with_llvm
-     error('Lavapipe requires LLVM draw support.')
-   endif
+ with_opencl_spirv = (_opencl != 'disabled' and get_option('opencl-spirv')) or with_clc
+ if with_opencl_spirv
 diff --git a/meson_options.txt b/meson_options.txt
-index 92ffd1d6c40..512835d75c7 100644
+index 92ffd1d6c40..d2869392f68 100644
 --- a/meson_options.txt
 +++ b/meson_options.txt
 @@ -690,3 +690,10 @@ option (
@@ -79,7 +75,7 @@ index 92ffd1d6c40..512835d75c7 100644
    description: 'Enable Intel Xe KMD support.'
  )
 +
-+option (
++option(
 +  'llvm-orcjit',
 +  type : 'boolean',
 +  value : false,
@@ -592,10 +588,10 @@ index 418921cb7ad..0dffeeb67bb 100644
  
 diff --git a/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp b/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
 new file mode 100644
-index 00000000000..758a8bb61c5
+index 00000000000..6ff140390a4
 --- /dev/null
 +++ b/src/gallium/auxiliary/gallivm/lp_bld_init_orc.cpp
-@@ -0,0 +1,955 @@
+@@ -0,0 +1,959 @@
 +#include "util/detect.h"
 +#include "util/u_cpu_detect.h"
 +#include "util/u_debug.h"
@@ -637,7 +633,11 @@ index 00000000000..758a8bb61c5
 +#include <llvm/Target/TargetMachine.h>
 +#include <llvm/Support/TargetSelect.h>
 +#include <llvm/Support/Casting.h>
++#if LLVM_VERSION_MAJOR >= 18
++#include <llvm/TargetParser/Host.h>
++#else
 +#include <llvm/Support/Host.h>
++#endif
 +#include <llvm/Support/CBindingWrapping.h>
 +#if LLVM_USE_INTEL_JITEVENTS
 +#include <llvm/ExecutionEngine/JITEventListener.h>
@@ -1724,7 +1724,7 @@ index 11d2e2cd825..d697213530a 100644
  
     /* Total number of LLVM instructions generated */
 diff --git a/src/gallium/drivers/llvmpipe/lp_state_fs.c b/src/gallium/drivers/llvmpipe/lp_state_fs.c
-index b342843fdfb..2f5f577805c 100644
+index 21312aa98e2..3155e81d26b 100644
 --- a/src/gallium/drivers/llvmpipe/lp_state_fs.c
 +++ b/src/gallium/drivers/llvmpipe/lp_state_fs.c
 @@ -3207,6 +3207,10 @@ generate_fragment(struct llvmpipe_context *lp,
@@ -1738,7 +1738,7 @@ index b342843fdfb..2f5f577805c 100644
  
     /* XXX: need to propagate noalias down into color param now we are
      * passing a pointer-to-pointer?
-@@ -3914,20 +3918,37 @@ generate_variant(struct llvmpipe_context *lp,
+@@ -3913,20 +3917,37 @@ generate_variant(struct llvmpipe_context *lp,
      * Compile everything
      */
  
@@ -1776,7 +1776,7 @@ index b342843fdfb..2f5f577805c 100644
     } else if (!variant->jit_function[RAST_WHOLE]) {
        variant->jit_function[RAST_WHOLE] = (lp_jit_frag_func)
           variant->jit_function[RAST_EDGE_TEST];
-@@ -3936,7 +3957,11 @@ generate_variant(struct llvmpipe_context *lp,
+@@ -3935,7 +3956,11 @@ generate_variant(struct llvmpipe_context *lp,
     if (linear_pipeline) {
        if (variant->linear_function) {
           variant->jit_linear_llvm = (lp_jit_linear_llvm_func)
@@ -1788,7 +1788,7 @@ index b342843fdfb..2f5f577805c 100644
        }
  
        /*
-@@ -4112,6 +4137,14 @@ llvmpipe_destroy_shader_variant(struct llvmpipe_context *lp,
+@@ -4111,6 +4136,14 @@ llvmpipe_destroy_shader_variant(struct llvmpipe_context *lp,
  {
     gallivm_destroy(variant->gallivm);
     lp_fs_reference(lp, &variant->shader, NULL);
@@ -2535,26 +2535,21 @@ index 7e53aa51928..fb2a6847a7c 100644
     return success;
  }
 diff --git a/src/gallium/drivers/llvmpipe/lp_texture_handle.c b/src/gallium/drivers/llvmpipe/lp_texture_handle.c
-index 72152babcc4..fe27909e5c4 100644
+index 72152babcc4..7930ad3d543 100644
 --- a/src/gallium/drivers/llvmpipe/lp_texture_handle.c
 +++ b/src/gallium/drivers/llvmpipe/lp_texture_handle.c
-@@ -200,15 +200,27 @@ llvmpipe_sampler_matrix_destroy(struct llvmpipe_context *ctx)
-    util_dynarray_fini(&ctx->sampler_matrix.gallivms);
+@@ -201,14 +201,22 @@ llvmpipe_sampler_matrix_destroy(struct llvmpipe_context *ctx)
  }
  
-+#if GALLIVM_USE_ORCJIT == 1
-+static void *
-+compile_function(struct llvmpipe_context *ctx, struct gallivm_state *gallivm, LLVMValueRef function, const char *func_name,
-+                 bool needs_caching,
-+                 uint8_t cache_key[SHA1_DIGEST_LENGTH])
-+{
-+#else
  static void *
++#if GALLIVM_USE_ORCJIT == 1
++compile_function(struct llvmpipe_context *ctx, struct gallivm_state *gallivm, LLVMValueRef function, const char *func_name,
++#else
  compile_function(struct llvmpipe_context *ctx, struct gallivm_state *gallivm, LLVMValueRef function,
++#endif
                   bool needs_caching,
                   uint8_t cache_key[SHA1_DIGEST_LENGTH])
  {
-+#endif
     gallivm_verify_function(gallivm, function);
     gallivm_compile_module(gallivm);
  
@@ -2566,7 +2561,7 @@ index 72152babcc4..fe27909e5c4 100644
  
     if (needs_caching)
        lp_disk_cache_insert_shader(llvmpipe_screen(ctx->pipe.screen), gallivm->cache, cache_key);
-@@ -336,7 +348,11 @@ compile_image_function(struct llvmpipe_context *ctx, struct lp_static_texture_st
+@@ -336,7 +344,11 @@ compile_image_function(struct llvmpipe_context *ctx, struct lp_static_texture_st
  
     free(image_soa);
  
@@ -2578,7 +2573,7 @@ index 72152babcc4..fe27909e5c4 100644
  }
  
  static void *
-@@ -484,7 +500,11 @@ compile_sample_function(struct llvmpipe_context *ctx, struct lp_static_texture_s
+@@ -484,7 +496,11 @@ compile_sample_function(struct llvmpipe_context *ctx, struct lp_static_texture_s
  
     free(sampler_soa);
  
@@ -2590,7 +2585,7 @@ index 72152babcc4..fe27909e5c4 100644
  }
  
  static void *
-@@ -566,7 +586,11 @@ compile_size_function(struct llvmpipe_context *ctx, struct lp_static_texture_sta
+@@ -566,7 +582,11 @@ compile_size_function(struct llvmpipe_context *ctx, struct lp_static_texture_sta
  
     free(sampler_soa);
  
@@ -2655,5 +2650,5 @@ index b3f7f90ac96..36f638a10d5 100644
 +
  #endif /* UTIL_DETECT_ARCH_H_ */
 -- 
-2.43.0
+2.44.0
 
