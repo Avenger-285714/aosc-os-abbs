@@ -2,6 +2,8 @@ PKGNAME=llvm-runtime-17
 PKGSEC=libs
 PKGDEP="gcc-runtime libedit libffi ncurses zlib"
 BUILDDEP=""
+# FIXME: Build fails with GCC 13.2.0 on LoongArch.
+BUILDDEP__LOONGARCH64="llvm"
 BUILDDEP__RETRO=""
 BUILDDEP__ARMV4="${BUILDDEP__RETRO}"
 BUILDDEP__ARMV6HF="${BUILDDEP__RETRO}"
@@ -16,6 +18,8 @@ AB_FLAGS_O3=1
 AB_FLAGS_O3__RETRO=0
 
 USECLANG=0
+# FIXME: Build fails with GCC 13.2.0 on LoongArch.
+USECLANG__LOONGARCH64=1
 
 NOLTO=1
 
