@@ -1,0 +1,87 @@
+From be3433753092ebc94056c1b9719c71f45eff0943 Mon Sep 17 00:00:00 2001
+From: Yanteng Si <siyanteng@loongson.cn>
+Date: Sat, 6 Apr 2024 21:24:38 +0800
+Subject: [PATCH 36/45] net: stmmac: dwmac-loongson: Introduce gmac setup
+
+Based on IP core classification, loongson has two devices,
+0x37 is gmac, 0x10 is gnet, and the current device is gmac.
+
+Difference:
+device    type    pci_id    ip_core
+ls7a1000  gmac    7a03      0x35/0x37
+ls2k1000  gmac    7a03      0x37
+ls7a2000  gnet    7a13      0x37
+ls2k2000  gnet    7a13      0x10
+
+The ref/ptp clock of gmac is 125000000. gmac device only
+has a MAC chip inside and needs an external PHY chip;
+
+Signed-off-by: Yanteng Si <siyanteng@loongson.cn>
+Signed-off-by: Feiyang Chen <chenfeiyang@loongson.cn>
+Signed-off-by: Yinggang Gu <guyinggang@loongson.cn>
+---
+ .../ethernet/stmicro/stmmac/dwmac-loongson.c  | 21 +++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c b/drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c
+index ca475baae73d..20ddbf0dc6ab 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c
++++ b/drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c
+@@ -9,7 +9,8 @@
+ #include <linux/of_irq.h>
+ #include "stmmac.h"
+ 
+-static int loongson_default_data(struct plat_stmmacenet_data *plat)
++static void loongson_default_data(struct pci_dev *pdev,
++				  struct plat_stmmacenet_data *plat)
+ {
+ 	plat->clk_csr = 2;	/* clk_csr_i = 20-35MHz & MDC = clk_csr_i/16 */
+ 	plat->has_gmac = 1;
+@@ -24,16 +25,18 @@ static int loongson_default_data(struct plat_stmmacenet_data *plat)
+ 	/* Set the maxmtu to a default of JUMBO_LEN */
+ 	plat->maxmtu = JUMBO_LEN;
+ 
+-	/* Set default number of RX and TX queues to use */
+-	plat->tx_queues_to_use = 1;
+-	plat->rx_queues_to_use = 1;
+-
+ 	/* Disable Priority config by default */
+ 	plat->tx_queues_cfg[0].use_prio = false;
+ 	plat->rx_queues_cfg[0].use_prio = false;
+ 
+ 	/* Disable RX queues routing by default */
+ 	plat->rx_queues_cfg[0].pkt_route = 0x0;
++}
++
++static int loongson_gmac_data(struct pci_dev *pdev,
++			      struct plat_stmmacenet_data *plat)
++{
++	loongson_default_data(pdev, plat);
+ 
+ 	/* Default to phy auto-detection */
+ 	plat->phy_addr = -1;
+@@ -42,6 +45,12 @@ static int loongson_default_data(struct plat_stmmacenet_data *plat)
+ 	plat->dma_cfg->pblx8 = true;
+ 
+ 	plat->multicast_filter_bins = 256;
++	plat->clk_ref_rate = 125000000;
++	plat->clk_ptp_rate = 125000000;
++
++	plat->tx_queues_to_use = 1;
++	plat->rx_queues_to_use = 1;
++
+ 	return 0;
+ }
+ 
+@@ -113,7 +122,7 @@ static int loongson_dwmac_probe(struct pci_dev *pdev, const struct pci_device_id
+ 
+ 	pci_set_master(pdev);
+ 
+-	loongson_default_data(plat);
++	loongson_gmac_data(pdev, plat);
+ 	pci_enable_msi(pdev);
+ 	memset(&res, 0, sizeof(res));
+ 	res.addr = pcim_iomap_table(pdev)[0];
+-- 
+2.44.0
+

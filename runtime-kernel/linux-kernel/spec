@@ -1,9 +1,8 @@
-VER=6.7.5
-REL=2
-# RC=
+VER=6.9.0
+RC=3
 # Use this for RC releases.
-#SRCS="tbl::https://git.kernel.org/torvalds/t/linux-${VER%%.0}-rc${RC}.tar.gz"
+SRCS="tbl::https://git.kernel.org/torvalds/t/linux-${VER%%.0}-rc${RC}.tar.gz"
 # Use this for stable releases.
-SRCS="tbl::https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${VER%%.0}.tar.xz"
-CHKSUMS="sha256::29f6464061b8179cbb77fc5591e06a2199324e018c9ed730ca3e6dfb145539ff"
+#SRCS="tbl::https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${VER%%.0}.tar.xz"
+CHKSUMS="sha256::9e53a8268c25dcb948cd4002cf08be1a90a6cebfb0aef402370f32fa62ecf848"
 CHKUPDATE="anitya::id=6501"

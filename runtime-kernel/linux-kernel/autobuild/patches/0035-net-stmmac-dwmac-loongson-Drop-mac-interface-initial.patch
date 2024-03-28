@@ -1,0 +1,31 @@
+From 73be3c451028f7ded9b65add4a174fd554278bda Mon Sep 17 00:00:00 2001
+From: Yanteng Si <siyanteng@loongson.cn>
+Date: Sat, 6 Apr 2024 21:21:21 +0800
+Subject: [PATCH 35/45] net: stmmac: dwmac-loongson: Drop mac-interface
+ initialization
+
+We don't need to initialize mac_interface, just need
+to get the phy_interface.
+
+Signed-off-by: Yanteng Si <siyanteng@loongson.cn>
+Signed-off-by: Feiyang Chen <chenfeiyang@loongson.cn>
+Signed-off-by: Yinggang Gu <guyinggang@loongson.cn>
+---
+ drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c b/drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c
+index 995c9bd144e0..ca475baae73d 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c
++++ b/drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c
+@@ -110,7 +110,6 @@ static int loongson_dwmac_probe(struct pci_dev *pdev, const struct pci_device_id
+ 	}
+ 
+ 	plat->phy_interface = phy_mode;
+-	plat->mac_interface = PHY_INTERFACE_MODE_GMII;
+ 
+ 	pci_set_master(pdev);
+ 
+-- 
+2.44.0
+

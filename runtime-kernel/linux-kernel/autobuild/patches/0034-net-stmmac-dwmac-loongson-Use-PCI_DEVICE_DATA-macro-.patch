@@ -1,0 +1,32 @@
+From 2e3849d22819f6c841850a0da8f9a2a835758094 Mon Sep 17 00:00:00 2001
+From: Yanteng Si <siyanteng@loongson.cn>
+Date: Sat, 6 Apr 2024 21:21:20 +0800
+Subject: [PATCH 34/45] net: stmmac: dwmac-loongson: Use PCI_DEVICE_DATA()
+ macro for device identification
+
+Just use PCI_DEVICE_DATA() macro for device identification,
+No changes to function functionality.
+
+Signed-off-by: Yanteng Si <siyanteng@loongson.cn>
+Signed-off-by: Feiyang Chen <chenfeiyang@loongson.cn>
+Signed-off-by: Yinggang Gu <guyinggang@loongson.cn>
+---
+ drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c b/drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c
+index 9e40c28d453a..995c9bd144e0 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c
++++ b/drivers/net/ethernet/stmicro/stmmac/dwmac-loongson.c
+@@ -213,7 +213,7 @@ static SIMPLE_DEV_PM_OPS(loongson_dwmac_pm_ops, loongson_dwmac_suspend,
+ 			 loongson_dwmac_resume);
+ 
+ static const struct pci_device_id loongson_dwmac_id_table[] = {
+-	{ PCI_VDEVICE(LOONGSON, 0x7a03) },
++	{ PCI_DEVICE_DATA(LOONGSON, GMAC, &loongson_gmac_pci_info) },
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(pci, loongson_dwmac_id_table);
+-- 
+2.44.0
+
