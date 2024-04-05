@@ -1,4 +1,6 @@
-VER="2.29.5160.102+fcitx5+git20230919"
-SRCS="git::commit=f0ec5129b4df5335bf22bcbc7015637472639ad7::https://github.com/fcitx/mozc"
+VER=2.29.5374.102
+# Note: fcitx5-mozc automatically rebases itself from google/mozc. Choose the
+# newest commit hash whilst packaging and record the version information.
+SRCS="git::commit=5c77c022dae582d47e3e05089dd5e4cf92b180a7::https://github.com/fcitx/mozc"
 CHKSUMS="SKIP"
 CHKUPDATE="anitya::id=2016"
