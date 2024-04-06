@@ -1,11 +1,11 @@
 PKGNAME=tracker
 PKGSEC=gnome
 PKGDEP="desktop-file-utils enca exempi flac giflib gstreamer \
-        gtk-3 hicolor-icon-theme icu json-glib libcue libexif libffi libgee \
+        gtk-3 hicolor-icon-theme json-glib libcue libexif libffi libgee \
         libiptcdata libgrss libgsf libgxps libmediaart libosinfo libsecret \
-        libsoup libunistring libvorbis networkmanager pcre poppler python-3 \
+        libsoup-3 libunistring libvorbis networkmanager pcre poppler python-3 \
         snowball taglib totem-pl-parser upower util-linux"
-BUILDDEP="asciidoc gtk-doc gobject-introspection hotdoc intltool vala"
+BUILDDEP="asciidoc gi-docgen gtk-doc gobject-introspection hotdoc intltool vala"
 PKGDES="All-in-one indexer, search tool and metadata database"
 
 # FIXME: Using ICU for unicode support, as the libunistring binding is broken.
@@ -14,9 +14,11 @@ PKGDES="All-in-one indexer, search tool and metadata database"
 #     function); did you mean ‘function_sparql_time_zone_duration’?
 MESON_AFTER="-Ddocs=true \
              -Dman=true \
+             -Doverride_sqlite_version_check=false \
              -Dstemmer=enabled \
-             -Dunicode_support=icu \
+             -Dunicode_support=unistring \
              -Dbash_completion=true \
              -Dsystemd_user_services=true \
              -Dintrospection=enabled \
-             -Dsoup=soup2"
+             -Dvapi=enabled \
+             -Dsoup=soup3"
