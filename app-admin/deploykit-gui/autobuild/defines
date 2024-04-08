@@ -1,0 +1,16 @@
+PKGNAME="deploykit-gui"
+PKGDES="Deploykit GUI frontend"
+PKGDEP="glibc gcc-runtime webkit2gtk"
+BUILDDEP="llvm rustc yarn"
+PKGSEC="admin"
+
+USECLANG=1
+
+# FIXME: ld.lld does not support arch:
+USECLANG__LOONGSON3=0
+NOLTO__LOONGSON3=1
+
+USECLANG__LOONGARCH64=0
+NOLTO__LOONGARCH64=1
+
+CARGO_AFTER="--features custom-protocol"
