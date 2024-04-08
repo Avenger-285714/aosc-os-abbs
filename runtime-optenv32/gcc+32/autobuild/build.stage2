@@ -41,8 +41,12 @@ if [ -e "/opt/32/.gcc-stamp" ] ; then
 		abdie "glibc could not be found. Make sure glibc+32 is built and installed."
 	fi
 	abinfo "Configuring libstdc++ ..."
+	export CC=i686-aosc-linux-gnu-gcc
+	export CXX=i686-aosc-linux-gnu-g++
+	export LD=i686-aosc-linux-gnu-ld.bfd
 	"$SRCDIR"/libstdc++-v3/configure \
 		--host=i686-aosc-linux-gnu \
+		--target=i686-aosc-linux-gnu \
 		--build=x86_64-aosc-linux-gnu \
 		--prefix=/opt/32 \
 		--disable-multilib \
