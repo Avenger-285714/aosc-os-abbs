@@ -1,0 +1,15 @@
+PKGNAME="deploykit-backend"
+PKGDES="Deploykit backend"
+PKGDEP="gcc-runtime glibc libcap lvm2 \
+        openssl parted systemd util-linux-runtime \
+        zlib"
+PKGSEC="admin"
+
+USECLANG=1
+
+# FIXME: ld.lld does not support arch:
+USECLANG__LOONGSON3=1
+NOLTO__LOONGSON3=0
+
+USECLANG__LOONGARCH64=1
+NOLTO__LOONGARCH64=0

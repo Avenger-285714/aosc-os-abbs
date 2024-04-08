@@ -1,0 +1,3 @@
+abinfo "Installing systemd service ..."
+install -Dvm644 "$SRCDIR"/deploykit-backend.service \
+        -t "$PKGDIR"/usr/lib/systemd/system
