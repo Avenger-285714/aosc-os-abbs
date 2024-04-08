@@ -1,4 +1,7 @@
 export PATH=/opt/32/bin:$PATH
+export CC=/opt/32/bin/i686-aosc-linux-gnu-gcc
+export CXX=/opt/32/bin/i686-aosc-linux-gnu-g++
+export LD=/opt/32/bin/i686-aosc-linux-gnu-ld.bfd
 unset CPPFLAGS CFLAGS CXXFLAGS LDFLAGS
 
 abinfo "Preparing build ..."
@@ -21,16 +24,14 @@ abinfo "Configuring glibc ..."
     		 --sysconfdir=/etc \
 		 --sbindir=/opt/32/bin \
                  --host=i686-aosc-linux-gnu \
-                 --build=x86_64-unknown-linux-gnu \
                  --target=i686-aosc-linux-gnu \
                  --disable-profile \
-                 --with-tls \
+                 --disable-nscd \
                  --enable-kernel=3.4.0 \
-                 --with-__thread \
                  --with-binutils=/opt/32/bin \
                  --with-headers=/opt/32/include \
-                 --enable-obsolete-rpc \
-                 --cache-file=config.cache
+                 --cache-file=config.cache \
+                 libc_cv_slibdir=/opt/32/lib
 
 abinfo "Building stage 2 glibc ..."
 make
